@@ -1,32 +1,37 @@
 const express = require('express');
 const app = express();
-
+const { adminAuth, userAuth } = require('./middleware/auth');
 // This is handling all the requests from server side and sending response back to the client
 
-// This is also called middleware(a fancy technical word)
-app.get('/user/:userId/:name/:password', (req,res) => { // this only handle GET call to user
-    console.log(req.params);
-    res.send({firstname: 'Nooruddin', middlename: 'Md', lastname: 'Afsar'});
+// Handling Auth middleware for all the requests like GET, POST, PUT DELETE AND PATHC, OPTIONS
+
+app.use('/admin',adminAuth );
+app.use('/user',userAuth );
+
+app.get('/admin/getAllData', (req,res) =>  { 
+    res.send('Admin data fetch successfully');
+} )
+
+app.get('/user', (req,res) => {
+    try{
+        throw new Error('abcd');
+        res.send('User data fetched successfully');
+    }
+    catch(err){ // this is better to way to handle the error in express
+        console.log('Error:', err.message);
+        res.status(500).send('Khuch to galti ho raha hai babu bhaiya');
+    }
 })
 
-app.post('/user', (req,res) => { 
-    console.log('data is saved into database');
-    res.send({email: 'abx@123', phone: '4586515365'});
-})
-
-app.put('/user', (req,res) => { 
-    console.log('data is update in database');
-    res.send({update: 'abx@123', phone: '4586515365'});
-})
-
-app.patch('/user', (req,res) => { 
-    console.log('data is update in database');
-    res.send({address: 'abx@123', phone: '4586515365'});
-})
-
-app.delete('/user', (req,res) => { 
-    console.log('data is delete from database');
-    res.send({delete: 'abx@123', phone: '4586515365'});
+app.get('/admin/deleteAllData', (req,res) =>  { 
+        res.send('Admin data deleted successfully');
+} )
+// this is the older way of handling the error in the express
+app.use('/', (err,req,res,next) => {
+    if(err){
+        //console.log('Error:', err.message);
+        res.status(500).send('Something went wrong');
+    }
 })
 
 app.listen(3000, () => {
