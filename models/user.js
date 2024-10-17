@@ -37,8 +37,21 @@ const userSchema = new Schema({
                 throw new Error('Invalid gender');
             }
         }
-    }
-})
+    },
+    skills: {
+        type: [String],
+        required: true,
+        validate(array){
+            if(array.length > 10){
+                throw new Error('Skills should be less than 20');
+            }
+        }
+    },
+},
+{ 
+    timestamps: true,
+}
+);
 
 const User = mongoose.model('User', userSchema);
 module.exports = User;

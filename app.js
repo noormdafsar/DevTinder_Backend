@@ -32,15 +32,16 @@ app.post('/signup', async (req, res) => {
         password: req.body.password,
         age: req.body.age,
         gender: req.body.gender,
+        skills: req.body.skills,
     })
     try {
         await user.save();
-        console.log('user signup details:', req.body);
-        res.send('User created successfully...!');
+        console.log('user signup details:', user);
+        res.send('User created successfully...!', user);
     } 
     catch(err) {
         console.log('Error while saving the user :  '+ err.message);
-        res.send('Error while saving the user : '+ err.message);
+        res.status(404).send('Error while saving the user : '+ err.message);
     }
 });
 
@@ -86,28 +87,38 @@ app.get('/getOneUser', async (req,res) => {
     app.patch('/updateUser', async (req, res) => {
         const userId = req.body.userId;
         const data = req.body;
-        try{                                                                // option          
-            const updatedUser = await User.findByIdAndUpdate( //userId, data, {returnDocument: "after",}
-                userId, // Find the document by id
-                {$set: data}, // Partial replacement of document
+        try {    
+            const ALLOWED_UPDATES = ['gender', 'skills', 'age']; 
+            const isUpdateAllowed = Object.keys(data).every((key) =>
+                ALLOWED_UPDATES.includes(key) || key === 'userId'
+            ); 
+            if (!isUpdateAllowed) {
+                throw new Error("Invalid update request. You are trying to update data which is not allowed");
+            } 
+            
+            if (data.skills && data.skills.length > 10) {
+                throw new Error("Skills should be less than or equal to 10");
+            }          
+            const updatedUser = await User.findByIdAndUpdate(
+                userId,
+                { $set: data },
                 {
-                    new: true, // Return the replaced document
-                    runValidators: true // Run the validators
-                } // Return the replaced document
+                    new: true,
+                    runValidators: true
+                }
             );
-            if(!updatedUser){
-                res.status(404).send('User not found');
+            if (!updatedUser) {
+                return res.status(404).send('User not found');
             }
-            else{
-                res.send(updatedUser);
-                console.log('User details updated successfully...!' + updatedUser);
-            }
+            res.send(updatedUser);
+            console.log('User details updated successfully...!', updatedUser);
         }
-        catch(err){
-            console.error("Error updating the user details....!  ", err)
-            res.status(500).send('Error updating the user details...! ' + err.message);
+        catch (err) {
+            console.error("Error updating the user details....!", err);
+            res.status(400).send('Error updating the user details...! ' + err.message);
         }
     });
+
 
     app.put('/completeUpdateUser', async (req, res) => {
         const userId = req.body.userId;
