@@ -2,48 +2,61 @@ const express = require('express');
 const connectDB = require('./config/database');
 const app = express();
 const User = require('./models/user')
+const { validateSignupData } = require('./utils/validation');
+const bcrypt = require('bcrypt');
 
 app.use(express.json())
     
-app.post('/detail', async (req,res) => {
-    const user = new User ({
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        emailId: req.body.emailId,
-        password: req.body.password,
-        age: req.body.age,
-        gender: req.body.gender,
-    })
-    try{
-        await user.save();
-        console.log(req.body);
-        res.send('Data added successfully...!');
-    }
-    catch(err){
-        res.status(400).send('Error while saving the user: '+ err.message);
-    }
-})
 
 app.post('/signup', async (req, res) => {
-    const user = new User ({
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        emailId: req.body.emailId,
-        password: req.body.password,
-        age: req.body.age,
-        gender: req.body.gender,
-        skills: req.body.skills,
-    })
+
     try {
+        const { firstName, lastName, emailId, password } = req.body;
+         // validation of data
+        validateSignupData(req);
+
+        // Encryption of password
+        const hashPassword = await bcrypt.hash(password, 10);
+        console.log('Hashed password:', hashPassword);
+
+        // creating a new instance of the user model
+        const user = new User ({
+            firstName,
+            lastName,
+            emailId,
+            password: hashPassword,
+        });
         await user.save();
         console.log('user signup details:', user);
-        res.send('User created successfully...!', user);
+        res.send('Signup successfully...!');
     } 
     catch(err) {
         console.log('Error while saving the user :  '+ err.message);
-        res.status(404).send('Error while saving the user : '+ err.message);
+        res.status(400).send('ERROR: ' + err.message);
     }
 });
+
+app.post('/login', async (req, res) => {
+    try {
+        const { emailId, password } = req.body;
+        const user = await User.findOne({ emailId: emailId });
+        if(!user) {
+            throw new Error('User not found');
+        }
+        const isPasswordMatch = await bcrypt.compare(password, user.password);
+        if(!isPasswordMatch) {
+            throw new Error('Invalid password');
+        }
+        else{
+            res.send('Login successfully...!');
+            console.log('User login successfully...!', user);
+        }
+    }
+    catch(err) {
+        console.log('Error while login :  '+ err.message);
+        res.status(400).send('ERROR: ' + err.message);
+    }
+})
 
 // This is used to find the user details for only one user using emailId:
 app.get('/getOneUser', async (req,res) => {
