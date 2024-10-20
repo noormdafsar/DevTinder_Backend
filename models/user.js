@@ -60,6 +60,10 @@ const userSchema = new Schema({
             }
         }
     },
+    about: {
+        type: String,
+        maxLength: 200,
+    }
 },
 { 
     timestamps: true,
