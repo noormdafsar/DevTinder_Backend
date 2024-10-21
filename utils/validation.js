@@ -16,18 +16,6 @@ const validateSignupData = (req) => {
         }
 }
 
-const validateLoginData = (req) => {
-    const { emailId, password } = req.body;
-    if(!emailId || !password) {
-        throw new Error('Please provide all the details');
-    }
-    else if(!validator.isEmail(emailId)){
-        throw new Error('Invalid email address');
-    }
-    else if(!validator.isStrongPassword(password)){
-        throw new Error('Enter the strong password');
-    }
-}
 
 const validateEditProfileData = async (req) => {
     const ALLOWED_FIELDS = [
@@ -42,6 +30,17 @@ const validateEditProfileData = async (req) => {
     return isAllowedField;
 }
 
+// const validateStatus = async (req,res) => {
+//     const status = req.params.status
+//     const ALLOWED_STATUS = ['pending', 'accepted', 'rejected'];
+//     const isAllowedStatus = ALLOWED_STATUS.includes(status);
+//     if(!isAllowedStatus) {
+//         return res
+//           .status(400)
+//           .json({ message: "Invalid status type: " + status });
+//       }
+//     return isAllowedStatus;
+// }
 module.exports = {
-    validateSignupData, validateEditProfileData, validateLoginData,
+    validateSignupData, validateEditProfileData, 
 }

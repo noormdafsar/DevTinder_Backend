@@ -36,43 +36,37 @@ authRouter.post('/signup', async (req, res) => {
 });
 
 
-authRouter.post('/login', async (req, res) => {
+authRouter.post("/login", async (req, res) => {
     try {
-        const { emailId, password } = req.body;
-        const user = await User.findOne({ emailId: emailId });
-        if(!validateLoginData(req)) {
-            throw new Error('Invalid field', err.message);
-        }  
-                             // jo tm password diya hai usko compare karna hai db mein jo store password hai usse
-       // const isPasswordMatch = await bcrypt.compare(password, user.password);
-       const isPasswordMatch = await user.validatePassword(password);
-        if(isPasswordMatch) {
-            // Create a JWT Token    / userId               // secret key               // expiry time
-           // const token = jwt.sign({ _id: user._id}, "Nooruddin@786_Dev_Tinder", { expiresIn:  '1d' });
-           const token = await user.getJWT();
-            console.log('Token:', token);
-            // Add the token to cookie and send the response back to the user
-            console.log("Login successful...!", user);
-            res.cookie('token', token, { expires: new Date(Date.now() + 8 * 3600000) });
-            res.status(200).json({
-                message: `${user.firstName} ${user.lastName} logged in successfully...!`,
-                user: user,
-                token: token,
-            });
-        }
-        else{
-            // console.log('User login successfully...!', user);
-            throw new Error('Invalid password');
-        }
+      const { emailId, password } = req.body;
+  
+      const user = await User.findOne({ emailId: emailId });
+      if (!user) {
+        throw new Error("Invalid credentials");
+      }
+      const isPasswordValid = await user.validatePassword(password);
+  
+      if (isPasswordValid) {
+        const token = await user.getJWT();
+  
+        res.cookie("token", token, {
+          expires: new Date(Date.now() + 8 * 3600000),
+        });
+        res.send(user);
+      } else {
+        throw new Error("Invalid credentials");
+      }
+    } catch (err) {
+      res.status(400).send("ERROR : " + err.message);
     }
-    catch(err) {
-        console.log('Error while login :  '+ err.message);
-        res.status(400).send('ERROR: ' + err.message);
-    }
-});
+  });
 
 authRouter.post('/logout', async(req,res) => {
     try{
+        const user = await User.findOne({emailId: req.body.emailId});
+        if(!user) {
+            throw new Error('User not found');
+        }
         res.cookie('token', null, {
             expires: new Date(Date.now()),
         });
