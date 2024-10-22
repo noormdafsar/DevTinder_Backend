@@ -72,6 +72,7 @@ const userSchema = new Schema({
 
 userSchema.methods.getJWT =  async function(){
     const user = this;
+    // create a jwt token with the help of user id and secret key
     const token = await jwt.sign({ _id: user._id }, 'Nooruddin@786_Dev_Tinder', {expiresIn: '7d',});
     return token;
 }

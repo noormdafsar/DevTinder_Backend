@@ -63,10 +63,7 @@ authRouter.post("/login", async (req, res) => {
 
 authRouter.post('/logout', async(req,res) => {
     try{
-        const user = await User.findOne({emailId: req.body.emailId});
-        if(!user) {
-            throw new Error('User not found');
-        }
+        
         res.cookie('token', null, {
             expires: new Date(Date.now()),
         });
