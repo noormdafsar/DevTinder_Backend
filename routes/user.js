@@ -60,8 +60,54 @@ userRouter.get("/user/connections", userAuth, async (req,res) => {
       });
       res.json({
         message: "Data fetched successfully",
-        data: connectionRequests,
+        data: data,
       });
+  }
+  catch(err) {
+    req.status(400).send("ERROR: " + err.message);
+  }
+});
+
+userRouter.get("/feed", userAuth, async(req,res) => {
+  try {
+    const loggedInUser = req.user;
+
+    const page = req.query.page || 1;
+    let limit = parseInt(req.query.limit) || 10;
+    limit = limit >50 ? 50 : limit;
+    const skip = (page - 1) * limit;
+
+    const connectionRequests = await ConnectionRequest.find({
+      $or: [
+        {
+          fromUserId: loggedInUser._id,
+          status: "accepted",
+        },
+        {
+          toUserId: loggedInUser._id,
+          status: "accepted",
+        },
+      ]
+    }).select("fromUserId toUserId");
+    const hideUsersFromFeed = new Set();
+    connectionRequests.forEach((req) => {
+      hideUsersFromFeed.add(req.fromUserId.toString());
+      hideUsersFromFeed.add(req.toUserId.toString());
+    });
+    console.log(hideUsersFromFeed);
+    const users = await User.find({
+      $and: [
+        { _id: { $nin: [...hideUsersFromFeed] } },
+        { _id: { $ne: loggedInUser._id } },
+      ],
+    }).select(USER_SAFE_DATA)
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      message: 'Your Feed Data...!',
+      users,
+    })
   }
   catch(err) {
     req.status(400).send("ERROR: " + err.message);
