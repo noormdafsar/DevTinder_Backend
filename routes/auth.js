@@ -6,7 +6,7 @@ const bcrypt = require('bcrypt');
 
 authRouter.post('/signup', async (req, res) => {
     try {
-        // validation of data
+        // validation of data whether it is valid or not
         validateSignupData(req);
 
         const { firstName, lastName, emailId, password } = req.body;
@@ -52,10 +52,14 @@ authRouter.post("/login", async (req, res) => {
         res.cookie("token", token, {
           expires: new Date(Date.now() + 8 * 3600000),
         });
-        res.send(user);
+        res.status(200).json({
+          message: `${user.firstName} ${user.lastName} You are logged in...!`,
+          user: user,
+        });
       } else {
         throw new Error("Invalid credentials");
       }
+
     } catch (err) {
       res.status(400).send("ERROR : " + err.message);
     }
