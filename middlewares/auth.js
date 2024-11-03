@@ -4,7 +4,7 @@ const User = require('../models/user');
 const userAuth = async (req,res,next) => {
     try {
         // read the cookies from the request
-        const { token } = req.cookies;
+        const { token } = req.cookies || req.headers('Authorisation').replace('Bearer', '') || req.body;
         if(!token) {
             throw new Error('Token not found');
         }

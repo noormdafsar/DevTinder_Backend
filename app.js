@@ -1,22 +1,29 @@
 const express = require('express');
 const connectDB = require('./config/database');
 const app = express();
-const User = require('./models/user')
 const cookieParser = require('cookie-parser');
+const cors = require('cors');
 //const jwt = require('jsonwebtoken');
 
+// Middleware
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
+}));
 app.use(cookieParser());
 app.use(express.json());
 
-const authRouter = require('./routes/auth');
-const profileRouter = require('./routes/profile');
-const requestRouter = require('./routes/request');
-const userRouter = require('./routes/user');
+// Import routes
+const authRoutes = require('./routes/auth');
+const profileRoutes = require('./routes/profile');
+const requestRoutes = require('./routes/request');
+const userRoutes = require('./routes/user');
 
-app.use('/', authRouter);
-app.use('/', profileRouter);
-app.use('/', requestRouter);
-app.use('/', userRouter);
+// Mount routes
+app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/request', requestRoutes);
+app.use('/api/user', userRoutes);
 
 
 
